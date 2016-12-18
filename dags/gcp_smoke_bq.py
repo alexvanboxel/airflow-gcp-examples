@@ -23,10 +23,11 @@ with DAG('gcp_smoke_bq', schedule_interval=timedelta(days=1),
          default_args=default_args) as dag:
 
     bq_exec_copy_year = BigQueryOperator(
-        task_id='bq_exec_copy_year',
-        bql='gcp_smoke/noaa_gsod_shift_10y.sql',
-        destination_dataset_table='{{var.value.gcp_smoke_dataset}}.noaa_gsod_y{{ ds_nodash }}',
+        task_id='bq_extract_one_day',
+        bql='gcp_smoke/gsob_extract_day.sql',
+        destination_dataset_table='{{var.value.gcp_smoke_dataset}}.gsod_partition{{ ds_nodash }}',
         write_disposition='WRITE_TRUNCATE',
-        bigquery_conn_id='gcp_default'
+        bigquery_conn_id='gcp_smoke',
+        use_legacy_sql=False
     )
 

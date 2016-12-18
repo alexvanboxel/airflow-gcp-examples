@@ -1,0 +1,71 @@
+  #standardSQL
+SELECT
+  CAST(CONCAT(CAST((CAST(year AS INT64) + 8) AS STRING),'-',CAST(mo AS STRING),'-',CAST(da AS STRING)) AS DATE) AS partition_date,
+  IF(temp > 9999,
+    NULL,
+    (temp - 32) * 5/9) AS temperature_mean,
+  IF( min > 9999,
+    NULL,
+    ( min - 32) * 5/9) AS temperature_min,
+  IF( max > 9999,
+    NULL,
+    ( max - 32) * 5/9) AS temperature_max,
+  IF(dewp > 9999,
+    NULL,
+    (dewp - 32) * 5/9) AS dew_point_mean,
+  IF(slp > 9999,
+    NULL,
+    slp )AS pressure_sea_level_mean,
+  IF(stp > 9999,
+    NULL,
+    stp ) AS pressure_station_level_mean,
+  IF(visib > 9999,
+    NULL,
+    visib ) AS visibility_mean,
+  IF(CAST(wdsp AS FLOAT64) > 9999,
+    NULL,
+    CAST(wdsp AS FLOAT64) ) AS wind_speed_mean,
+  IF( CAST(mxpsd AS FLOAT64) > 999,
+    NULL,
+    CAST(mxpsd AS FLOAT64) ) AS wind_speed_sustained_max,
+  IF( prcp > 99,
+    NULL,
+    prcp ) AS precipitation,
+  IF( sndp > 999,
+    NULL,
+    sndp) AS snow_depth,
+  IF ( CAST( fog AS INT64) = 1,
+    TRUE,
+    FALSE) AS fog,
+  IF ( CAST( rain_drizzle AS INT64) = 1,
+    TRUE,
+    FALSE) AS rain_drizzle,
+  IF ( CAST( snow_ice_pellets AS INT64) = 1,
+    TRUE,
+    FALSE) AS snow_ice_pellets,
+  IF ( CAST( hail AS INT64) = 1,
+    TRUE,
+    FALSE) AS hail,
+  IF ( CAST( thunder AS INT64) = 1,
+    TRUE,
+    FALSE) AS thunder,
+  IF ( CAST( tornado_funnel_cloud AS INT64) = 1,
+    TRUE,
+    FALSE) AS tornado_funnel_cloud,
+  station.usaf AS usaf,
+  station.wban AS wban,
+  station.name AS station_name,
+  station.country AS station_country,
+  station.state AS station_state,
+  station.lat AS station_latitude,
+  station.lon AS station_longitude
+FROM
+  `bigquery-public-data.noaa_gsod.gsod{{execution_date.year-8}}` AS gsob
+JOIN
+  `bigquery-public-data.noaa_gsod.stations` AS station
+ON
+  CAST(gsob.stn AS INT64)=station.usaf
+  AND CAST(gsob.wban AS INT64)=station.wban
+WHERE
+    CAST(CONCAT(CAST((CAST(year AS INT64) + 8) AS STRING),'-',CAST(mo AS STRING),'-',CAST(da AS STRING)) AS DATE)
+    = '{{ ds }}'
