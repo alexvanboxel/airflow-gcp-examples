@@ -8,6 +8,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+logs/
 env/
 build/
 develop-eggs/
@@ -87,3 +88,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+airflow.cfg
+airflow-gcp-smoke.json
+airflow-webserver.pid
+unittests.cfg

@@ -23,7 +23,7 @@ a quick rundown of what you need:
 
 Make sure you're running the LocalExecutor and have a decent database setup.
 
-### Service Key
+### Google Cloud Service Key
 
 Next create a service account where you want your smoke tests and examples to run in. Go
 to the console:
@@ -34,7 +34,7 @@ And create a service key. Provision a JSON private key and give it Editor's righ
 
 ![console](img/create_service_account.png?raw=true)
 
-### Connection
+### Airflow Connection
 
 In Airflow you need to define the *gcp_smoke* named connection to your project:
 
@@ -43,12 +43,16 @@ In Airflow you need to define the *gcp_smoke* named connection to your project:
 Supply the path to the downloaded private key, supply the *project_id* and define the
 minimum scope of *https://www.googleapis.com/auth/cloud-platform*
 
-### Variables
+### Airflow Variables
+
+You need to setup variables that are used in the examples. You can tweak them to suite
+your environment.
 
 ![console](img/airflow_variables.png?raw=true)
 
-|| variable || example value ||
-| gcp_smoke_dataset | airflow |
-| gcp_smoke_testset | airflow_temp |
+variable | example value
+--- | ---
+gcp_smoke_dataset | airflow
+gcp_smoke_testset | airflow_temp
 
 
