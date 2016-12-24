@@ -1,0 +1,34 @@
+
+apply plugin: 'java'
+
+compileJava.options.encoding = 'UTF-8'
+sourceCompatibility = 1.8
+
+task pipelineCopy(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'DataFlow Copy Pipeline',
+                'Implementation-Version': version,
+                'Main-Class': 'airflow.gcloud.pipeline.CopyPipeline'
+    }
+    baseName = project.name + '-copy'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+task pipelineBq2Bq(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'DataFlow Copy Pipeline',
+                'Implementation-Version': version,
+                'Main-Class': 'airflow.gcloud.pipeline.Bq2BqPipeline'
+    }
+    baseName = project.name + '-bq2bq'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+jar.dependsOn pipelineCopy, pipelineBq2Bq
+
+dependencies {
+    compile project(':transform')
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
