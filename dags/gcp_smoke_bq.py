@@ -1,9 +1,11 @@
-
-from airflow.contrib.operators.bigquery_operator import BigQueryOperator
+from datetime import timedelta, datetime
 
 from airflow import DAG
+from airflow.contrib.operators.bigquery_operator import BigQueryOperator
+from airflow.contrib.operators.bigquery_to_gcs import BigQueryToCloudStorageOperator
+from airflow.contrib.operators.gcs_to_bq import GoogleCloudStorageToBigQueryOperator
 
-from datetime import timedelta, datetime
+import schemas
 
 seven_days_ago = datetime.combine(datetime.today() - timedelta(7),
                                   datetime.min.time())
@@ -21,13 +23,55 @@ default_args = {
 
 with DAG('gcp_smoke_bq', schedule_interval=timedelta(days=1),
          default_args=default_args) as dag:
-
-    bq_exec_copy_year = BigQueryOperator(
+    bq_extract_one_day = BigQueryOperator(
         task_id='bq_extract_one_day',
         bql='gcp_smoke/gsob_extract_day.sql',
-        destination_dataset_table='{{var.value.gcp_smoke_dataset}}.gsod_partition{{ ds_nodash }}',
+        destination_dataset_table=
+        '{{var.value.gcq_dataset}}.gsod_partition{{ ds_nodash }}',
         write_disposition='WRITE_TRUNCATE',
         bigquery_conn_id='gcp_smoke',
         use_legacy_sql=False
     )
 
+    bq_to_gcp_avro = BigQueryToCloudStorageOperator(
+        task_id='bq_to_gcp_avro',
+        source_project_dataset_table='{{var.value.gcq_dataset}}.gsod_partition{{ ds_nodash }}',
+        destination_cloud_storage_uris=[
+            'gs://{{var.value.gcs_bucket}}/{{var.value.gcs_root}}/gcp_smoke_bq/bq_to_gcp_avro/{{ ds_nodash }}/part-*.avro'
+        ],
+        export_format='AVRO',
+        bigquery_conn_id='gcp_smoke',
+    )
+
+    gcs2bq_avro_auto_schema = GoogleCloudStorageToBigQueryOperator(
+        task_id='gcs2bq_avro_auto_schema',
+        bucket='{{var.value.gcs_bucket}}',
+        source_objects=[
+            '{{var.value.gcs_root}}/gcp_smoke_bq/bq_to_gcp_avro/{{ ds_nodash }}/part-*'
+        ],
+        destination_project_dataset_table='{{var.value.gcq_tempset}}.avro_auto_schema{{ ds_nodash }}',
+        source_format='AVRO',
+        create_disposition='CREATE_IF_NEEDED',
+        write_disposition='WRITE_TRUNCATE',
+        google_cloud_storage_conn_id='gcp_smoke',
+        bigquery_conn_id='gcp_smoke'
+    )
+
+    gcs2bq_avro_with_schema = GoogleCloudStorageToBigQueryOperator(
+        task_id='gcs2bq_avro_with_schema',
+        bucket='{{var.value.gcs_bucket}}',
+        source_objects=[
+            '{{var.value.gcs_root}}/gcp_smoke_bq/bq_to_gcp_avro/{{ ds_nodash }}/part-*'
+        ],
+        destination_project_dataset_table='{{var.value.gcq_tempset}}.avro_with_schema{{ ds_nodash }}',
+        source_format='AVRO',
+        schema_fields=schemas.gsob(),
+        create_disposition='CREATE_IF_NEEDED',
+        write_disposition='WRITE_TRUNCATE',
+        google_cloud_storage_conn_id='gcp_smoke',
+        bigquery_conn_id='gcp_smoke'
+    )
+
+    bq_extract_one_day >> bq_to_gcp_avro
+    bq_to_gcp_avro >> gcs2bq_avro_auto_schema
+    bq_to_gcp_avro >> gcs2bq_avro_with_schema

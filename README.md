@@ -50,9 +50,9 @@ your environment.
 
 ![console](img/airflow_variables.png?raw=true)
 
-variable | example value
---- | ---
-gcp_smoke_dataset | airflow
-gcp_smoke_testset | airflow_temp
-
-
+variable | example value | note
+--- | --- | ---
+gcq_dataset | airflow | BigQuery dataset for examples
+gcq_testset | airflow_temp | BiqQuery dataset with 1 day retentions
+gcs_bucket | airflow-gcp-smoke | Storage bucket
+gcs_root | data | Storage root path (required, no start and end with slash)
