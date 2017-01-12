@@ -14,6 +14,7 @@ a quick rundown of what you need:
 * Setup a Google Cloud Connection in Airflow
 * Setup variables that the DAG's will need
 * Copy the DAG's to your dags folder
+* Run gcp_setup.sh to prepare GCP environment
 
 ### Airflow setup
 
@@ -53,6 +54,6 @@ your environment.
 variable | example value | note
 --- | --- | ---
 gcq_dataset | airflow | BigQuery dataset for examples
-gcq_testset | airflow_temp | BiqQuery dataset with 1 day retentions
+gcq_tempset | airflow_temp | BiqQuery dataset with 1 day retentions
 gcs_bucket | airflow-gcp-smoke | Storage bucket
 gcs_root | data | Storage root path (required, no start and end with slash)
