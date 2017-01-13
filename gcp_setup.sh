@@ -2,28 +2,38 @@
 # 
 # Prepare GCP project environment by creating the required bucket and dataset.
 
-#######################################################
-# Run command and check return status, exit if fails.
+#############################################################################
+# Run the first command, return if succeed. Otherwise run the second command.
 # Arguments:
-#   $1: command to be run
+#   $1: first command
+#   $2: second command
 # Returns:
 #   None
-#######################################################
-exit_if_failed_on_command() {
-  echo "executing "$1
+#############################################################################
+check_and_run() {
+  echo "Executing: "$1
+  unset IFS
   $1
-  if [[ $? -eq 0 ]]; then
-    echo "successful"
-  else
-    exit 1
+  if [[ $? -ne 0 ]]; then
+    echo "Executing: "$2
+    $2
+    if [[ $? -ne 0 ]]; then
+      echo "Fail to set up the GCP environment."
+      exit 1
+    fi
   fi
+  echo "Success."
 }
 
 echo "Preparing GCP environment..."
-commands_to_run=( "gsutil mb gs://airflow-gcp-smoke" "bq mk airflow"
-  "bq mk airflow_temp" )
+commands_to_run=(
+  "gsutil ls gs://airflow-gcp-smoke, gsutil mb gs://airflow-gcp-smoke"
+  "bq ls airflow, bq mk airflow"
+  "bq ls airflow_temp, bq mk airflow_temp" )
 for command in "${commands_to_run[@]}"
 do
-  exit_if_failed_on_command "$command"
+  IFS=","
+  set $command
+  check_and_run $1 $2
 done
 echo "GCP environment is ready." 
