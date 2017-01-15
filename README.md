@@ -52,7 +52,8 @@ your environment.
 
 variable | example value | note
 --- | --- | ---
+gc_project | my-project | Project where the examples will run in
 gcq_dataset | airflow | BigQuery dataset for examples
-gcq_testset | airflow_temp | BiqQuery dataset with 1 day retentions
+gcq_tempset | airflow_temp | BiqQuery dataset with 1 day retentions
 gcs_bucket | airflow-gcp-smoke | Storage bucket
 gcs_root | data | Storage root path (required, no start and end with slash)
